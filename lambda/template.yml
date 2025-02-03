@@ -13,10 +13,3 @@ Resources:
       Timeout: 30
       Policies:
         - AWSLambdaBasicExecutionRole
-      Environment:
-        Variables:
-          # DATABASE_URL: !Ref DatabaseUrl
-
-Parameters:
-  DatabaseUrl:
-    Type: String
