@@ -13,3 +13,9 @@ Resources:
       Timeout: 30
       Policies:
         - AWSLambdaBasicExecutionRole
+      Events:
+        ApiGateway:
+          Type: Api
+          Properties:
+            Path: /populate
+            Method: POST
