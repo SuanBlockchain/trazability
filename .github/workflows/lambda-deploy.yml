@@ -29,7 +29,7 @@ jobs:
           cd lambda
           sam build
           sam deploy --stack-name lambda-database-population \
-            --s3-bucket ${{ secrets.S3_BUCKET_NAME }} \
+            --s3-bucket trazability \
             --capabilities CAPABILITY_IAM \
             --region us-east-2 \
         env:
