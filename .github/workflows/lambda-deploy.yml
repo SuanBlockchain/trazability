@@ -1,0 +1,38 @@
+name: Deploy AWS Lambda
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "lambda/**"
+
+jobs:
+  deploy_lambda:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.11
+
+      - name: Install AWS SAM CLI
+        run: |
+          curl -Lo aws-sam-cli-linux.zip https://github.com/aws/aws-sam-cli/releases/latest/download/aws-sam-cli-linux-x86_64.zip
+          unzip aws-sam-cli-linux.zip -d sam-installation
+          sudo ./sam-installation/install
+
+      - name: Build and Deploy Lambda
+        run: |
+          cd lambda
+          sam build
+          sam deploy --stack-name lambda-database-population \
+            --capabilities CAPABILITY_IAM \
+            --region us-east-2 \
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
