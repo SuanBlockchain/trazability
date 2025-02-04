@@ -24,6 +24,14 @@ jobs:
         run: |
           sam --version
 
+      - name: Package Lambda Layer
+        run: |
+          mkdir -p lambda/requests-layer/python/lib/python3.11/site-packages
+          pip install requests -t lambda/requests-layer/python/lib/python3.11/site-packages
+          cd lambda
+          zip -r requests-layer.zip requests-layer/
+          cd ..
+          
       - name: Build and Deploy Lambda
         run: |
           cd lambda

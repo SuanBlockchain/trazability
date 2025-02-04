@@ -2,6 +2,16 @@ AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 
 Resources:
+  RequestsLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      LayerName: RequestsLayer
+      Description: Lambda layer with requests library
+      ContentUri: requests-layer/
+      CompatibleRuntimes:
+        - python3.11
+      RetentionPolicy: Delete
+
   DatabaseLambdaFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -19,3 +29,5 @@ Resources:
           Properties:
             Path: /populate
             Method: POST
+      Layers:
+        - Ref: RequestsLayer  # Attach the requests layer
