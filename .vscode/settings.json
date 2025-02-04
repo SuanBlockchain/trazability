@@ -1,0 +1,7 @@
+{
+    "pylint.args": [
+      "--disable=unused-import,unused-argument"
+    ],
+    "pylint.lintOnChange": false,
+    "pylint.enabled": false
+  }
