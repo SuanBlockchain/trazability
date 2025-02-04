@@ -4,7 +4,7 @@ import logging
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 def lambda_handler(event, context):
-    logger.info(f"Received event: {event}")
+    logger.info(f"Received event: {event.get("body", "{}")}")
     try:
         body = json.loads(event.get("body", "{}"))
 
