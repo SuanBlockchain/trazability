@@ -15,7 +15,7 @@ Resources:
   DatabaseLambdaFunction:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: PopulateDatabase # Name of the function
+      FunctionName: PopulateDatabase
       Handler: app.lambda_handler
       Runtime: python3.11
       CodeUri: ./
@@ -29,14 +29,14 @@ Resources:
               - ssm:GetParameter
               - ssm:GetParameters
               - ssm:GetParametersByPath
-            Resource: 
+            Resource:
               - arn:aws:ssm:us-east-2:036134507423:parameter/myapp/*
         - Statement:
             Effect: Allow
             Action:
               - s3:PutObject
-          Resource:
-            - arn:aws:s3:::trazability/data/*
+            Resource:
+              - arn:aws:s3:::trazability/data/*
       Events:
         ApiGateway:
           Type: Api
