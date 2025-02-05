@@ -31,6 +31,12 @@ Resources:
               - ssm:GetParametersByPath
             Resource: 
               - arn:aws:ssm:us-east-2:036134507423:parameter/myapp/*
+        - Statement:
+            Effect: Allow
+            Action:
+              - s3:PutObject
+          Resource:
+            Fn::Sub: arn:aws:s3:::${ServerlessDeploymentBucket}/*
       Events:
         ApiGateway:
           Type: Api
