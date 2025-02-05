@@ -39,6 +39,3 @@ Resources:
             Method: POST
       Layers:
         - Ref: RequestsLayer  # Attach the requests layer
-      Environment:
-        Variables:
-          KOBO_TOKEN: !Sub "{{resolve:ssm-secure:/myapp/kobo_token}}"
