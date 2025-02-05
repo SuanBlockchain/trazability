@@ -1,10 +1,16 @@
+from datetime import date, time
 import json
 import logging
+import requests
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 def lambda_handler(event, context):
-   
+    TODAY = date.fromtimestamp(time.time())
+    BASE_URL = "https://kf.kobotoolbox.org/api/v2/assets/"
+    params = {
+        'format': 'json'
+    }
     try:
         body = json.loads(event.get("body", "{}"))
 
