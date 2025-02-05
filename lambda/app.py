@@ -17,7 +17,7 @@ ssm = boto3.client("ssm", region_name="us-east-2")
 def get_ssm_parameter(name, with_decryption=True):
     """Retrieve parameter from AWS SSM."""
     response = ssm.get_parameter(Name=name, WithDecryption=with_decryption)
-    return response["Parameter"]["Value"]
+    return response["Parameter"]["Value"] 
 
 def kobo_api(URL, params= {}):
     headers = CaseInsensitiveDict()
