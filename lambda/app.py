@@ -25,7 +25,7 @@ def lambda_handler(event, context):
 
         # Upload the data to S3
         s3.put_object(
-            Bucket='your-s3-bucket-name',
+            Bucket='trazability',
             Key=s3_key,
             Body=json.dumps(body),
             ContentType='application/json'
