@@ -1,0 +1,24 @@
+# Exclude virtual environments
+.venv/
+venv/
+
+# Exclude local logs and cache files
+logs/
+*.log
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Exclude local environment files
+.env
+.env.local
+.envrc
+
+# Exclude unnecessary AWS SAM build artifacts
+.aws-sam/
+requests-layer.zip
+requests-layer/
+.samignore
+README.md
+utils.py
