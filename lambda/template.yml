@@ -41,5 +41,4 @@ Resources:
         - Ref: RequestsLayer  # Attach the requests layer
       Environment:
         Variables:
-          ENVIRONMENT: "production"
-          DB_HOST: !Sub "{{resolve:ssm:/myapp/kobo_token}}"
+          KOBO_TOKEN: !Sub "{{resolve:ssm-secure:/myapp/kobo_token}}"
