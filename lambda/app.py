@@ -28,7 +28,7 @@ def kobo_api(URL, params= {}):
 
     resp = requests.get(URL, headers=headers, params=params)
     rawResult = resp
-    return rawResult
+    return rawResult 
 
 def lambda_handler(event, context):
     TODAY = date.fromtimestamp(time.time())
