@@ -42,3 +42,4 @@ next-env.d.ts
 
 lambda/.aws-sam
 lambda/requests-layer/
+lambda/temp.json

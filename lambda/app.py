@@ -1,51 +1,39 @@
-from datetime import date
-import time
 import json
 import logging
-import os
 import boto3
+import uuid
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
-import requests
-from requests.structures import CaseInsensitiveDict
+# Initialize S3 client
+s3 = boto3.client('s3')
 
 # Initialize SSM client
 ssm = boto3.client("ssm", region_name="us-east-2")
 
-def get_ssm_parameter(name, with_decryption=True):
-    """Retrieve parameter from AWS SSM."""
-    response = ssm.get_parameter(Name=name, WithDecryption=with_decryption)
-    return response["Parameter"]["Value"] 
-
-def kobo_api(URL, params= {}):
-    headers = CaseInsensitiveDict()
-    kobo_token = get_ssm_parameter("/myapp/kobo_token")
-    # logger.info(f"Kobo token: {kobo_token}")
-    # kobo_token = os.getenv("kobo_token")
-    headers["Authorization"] = "Token " + str(kobo_token)
-
-    resp = requests.get(URL, headers=headers, params=params)
-    rawResult = resp
-    return rawResult 
 
 def lambda_handler(event, context):
-    # TODAY = date.fromtimestamp(time.time())
-    # BASE_URL = "https://kf.kobotoolbox.org/api/v2/assets/"
-    # params = {
-    #     'format': 'json'
-    # }
     try:
-        # rawResult = kobo_api(BASE_URL, params)
-        # rawResult = json.loads(rawResult.content.decode('utf-8'))
-        # logging.info(f"Raw result: {rawResult}")
+        logging.info(f"Received event: {event}")
+        logging.info(f"Received context: {context}")
         logging.info(f"Event: {event.get('body', {})}")
         body = json.loads(event.get("body", "{}"))
 
+        # Generate a unique key for the S3 object
+        s3_key = f"data/{uuid.uuid4()}.json"
+
+        # Upload the data to S3
+        s3.put_object(
+            Bucket='your-s3-bucket-name',
+            Key=s3_key,
+            Body=json.dumps(body),
+            ContentType='application/json'
+        )
+
         return {
             "statusCode": 200,
-            "body": json.dumps({"message": "Database populated!", "received_data": body})
+            "body": json.dumps({"message": "Database populated!", "received_data": body, "s3_key": s3_key})
         }
     except Exception as e:
         return {
