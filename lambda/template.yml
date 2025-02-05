@@ -36,7 +36,7 @@ Resources:
             Action:
               - s3:PutObject
           Resource:
-            - arn:aws:s3:::trazability/*
+            - arn:aws:s3:::trazability/data/*
       Events:
         ApiGateway:
           Type: Api

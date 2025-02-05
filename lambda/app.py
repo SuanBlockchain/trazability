@@ -15,8 +15,8 @@ ssm = boto3.client("ssm", region_name="us-east-2")
 
 def lambda_handler(event, context):
     try:
-        logging.info(f"Received event: {event}")
-        logging.info(f"Received context: {context}")
+        logging.info(f"Received event1: {event}")
+        logging.info(f"Received context1: {context}")
         logging.info(f"Event: {event.get('body', {})}")
         body = json.loads(event.get("body", "{}"))
 
