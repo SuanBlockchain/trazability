@@ -1,14 +1,14 @@
 # Lambda
 
-> This lambda is triggered every time a new record is created in KoboToolbox and then based on the id of the record the api is called to fetch all the data specific to that record. It format and places the data and files in S3 bucket in json format.
+> This Lambda function is triggered every time a new record is created in KoboToolbox. Based on the ID of the record, the API is called to fetch all the data specific to that record. It formats and places the data and files in an S3 bucket in JSON format.
 
 ***
 
-The lambda is deployed every time a new commit to github is done using the workflow feature [lambda-deploy.yml](../.github/workflows/lambda-deploy.yml)
+The Lambda function is deployed every time a new commit is made to GitHub using the workflow feature [lambda-deploy.yml](../.github/workflows/lambda-deploy.yml).
 
-## Testing the lambda locally
+## Testing the Lambda function locally
 
-If local tests are needed you need to configure the following:
+If local tests are needed, you need to configure the following:
 
 ### Installing the AWS CLI
 
@@ -72,3 +72,7 @@ Run SAM Build and SAM local invoke to test the lambda
 sam build --use-container
 sam local invoke DatabaseLambdaFunction
 ```
+
+### Upload secrets
+
+Secrets are uploaded using the upload_secrets.sh script. The script reads the .env file with the secrets and creates secret variables (e.g., kobo_token) using AWS SSM. These secrets are later used in the Lambda function to connect to the API. ```

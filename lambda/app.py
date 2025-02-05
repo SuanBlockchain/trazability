@@ -31,15 +31,16 @@ def kobo_api(URL, params= {}):
     return rawResult 
 
 def lambda_handler(event, context):
-    TODAY = date.fromtimestamp(time.time())
-    BASE_URL = "https://kf.kobotoolbox.org/api/v2/assets/"
-    params = {
-        'format': 'json'
-    }
+    # TODAY = date.fromtimestamp(time.time())
+    # BASE_URL = "https://kf.kobotoolbox.org/api/v2/assets/"
+    # params = {
+    #     'format': 'json'
+    # }
     try:
-        rawResult = kobo_api(BASE_URL, params)
-        rawResult = json.loads(rawResult.content.decode('utf-8'))
-        logging.info(f"Raw result: {rawResult}")
+        # rawResult = kobo_api(BASE_URL, params)
+        # rawResult = json.loads(rawResult.content.decode('utf-8'))
+        # logging.info(f"Raw result: {rawResult}")
+        logging.info(f"Event: {event.get('body', {})}")
         body = json.loads(event.get("body", "{}"))
 
         return {
