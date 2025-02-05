@@ -5,7 +5,9 @@ on:
     branches:
       - main
     paths:
-      - "lambda/*"
+      - "lambda/app.py"
+      - "lambda/utils.py"
+      - "lambda/requests-layer/**"
 
 jobs:
   deploy_lambda:

@@ -23,6 +23,14 @@ Resources:
       Timeout: 30
       Policies:
         - AWSLambdaBasicExecutionRole
+        - Statement:
+            Effect: Allow
+            Action:
+              - ssm:GetParameter
+              - ssm:GetParameters
+              - ssm:GetParametersByPath
+            Resource: 
+              - arn:aws:ssm:us-east-2:036134507423:parameter/myapp/*
       Events:
         ApiGateway:
           Type: Api
@@ -31,3 +39,7 @@ Resources:
             Method: POST
       Layers:
         - Ref: RequestsLayer  # Attach the requests layer
+      Environment:
+        Variables:
+          ENVIRONMENT: "production"
+          DB_HOST: !Sub "{{resolve:ssm:/myapp/kobo_token}}"
