@@ -22,8 +22,6 @@ export function NavItem({
   const pathname = usePathname();
   const user = useAuthUser()
 
-  console.log(user)
-
   return (
     <Tooltip>
       <TooltipTrigger asChild>

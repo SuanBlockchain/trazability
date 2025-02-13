@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { handleSignUp } from "@/lib/cognitoActions";
+import { handleSignUp } from "@/lib/cognito-actions";
 import Image from "next/image";
 import { useActionState } from "react";
 
@@ -30,33 +30,40 @@ export default function SignUpForm() {
         ></Image>
       </div>
       <CardHeader className="space-y-1">
-        <CardTitle className="text-2xl">Creación de cuenta</CardTitle>
+        <CardTitle className="text-2xl">Crear una cuenta</CardTitle>
         <CardDescription>
-          Crea tu cuenta para poder ingresar a la Plataforma
+          Crea una cuenta para acceder a la plataforma
         </CardDescription>
       </CardHeader>
       <CardContent className="grid gap-4">
-        <div className="grid gap-2">
-          <Label htmlFor="email">Usuario</Label>
-          <Input id="email" type="email" placeholder="m@example.com" />
-        </div>
-        <div className="grid gap-2">
-          <Label htmlFor="password">Contraseña</Label>
-          <Input id="password" type="password" />
-        </div>
-        <div className="grid gap-2 text-right text-xs text-[#4DBC5E]">
-          <a href="#" className="">
-            Olvidaste tu contraseña?
-          </a>
-        </div>
+        <form action={dispatch} className="grid gap-4">
+          <div className="grid gap-2">
+            <Label htmlFor="username">Usuario</Label>
+            <Input id="username" name="username" type="text" />
+          </div>
+          <div className="grid gap-2">
+            <Label htmlFor="password">Contraseña</Label>
+            <Input id="password" name="password" type="password" />
+          </div>
+          <div className="grid gap-2 text-right text-xs text-[#4DBC5E]">
+            <a href="#" className="">
+              ¿Olvidaste tu contraseña?
+            </a>
+          </div>
+          {errorMessage && (
+            <div className="text-red-500 text-sm">
+              Error en la autenticación. Por favor, verifica tus credenciales.
+            </div>
+          )}
+          <Button type="submit" className="w-full">
+            Ingresar
+          </Button>
+        </form>
       </CardContent>
-      <div className="p-6 pt-0">
-        <Button className="w-full">Ingresar</Button>
-      </div>
       <CardFooter className="justify-center text-xs space-x-2">
-        <span>¿Ya tienes una cuenta?</span>
-        <a href="/auth/login" className="text-[#4DBC5E]">
-          Ingresar
+        <span>¿Necesitas una cuenta?</span>
+        <a href="/auth/register" className="text-[#4DBC5E]">
+          Registrate
         </a>
       </CardFooter>
     </Card>

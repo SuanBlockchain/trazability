@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { handleSignIn } from "@/lib/cognitoActions";
+import { handleSignIn } from "@/lib/cognito-actions";
 import Image from "next/image";
 import { useActionState } from "react";
 

@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { useRouter } from "next/navigation";
 import {
   signUp,
   confirmSignUp,
@@ -103,11 +104,11 @@ export async function handleSignIn(
 export async function handleSignOut() {
   try {
     await signOut();
+    return true;
   } catch (error) {
     console.log(getErrorMessage(error));
+    return false;
   }
-
-  redirect("/auth/login");
 }
 
 export async function handleUpdateUserAttribute(

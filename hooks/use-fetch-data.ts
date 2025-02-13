@@ -1,53 +1,53 @@
 import { useState, useEffect } from "react";
+import { TreeRecord } from "@/types/records";
+import { toast } from "sonner";
 
-interface AthenaResult {
-  [key: string]: string | null;
+interface UseAthenaQueryResult {
+  data: TreeRecord[];
+  isLoading: boolean;
+  error: Error | null;
+  refetch: () => Promise<void>;
 }
 
-export function useAthenaQuery() {
-  const [data, setData] = useState<any>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
+export function useAthenaQuery(): UseAthenaQueryResult {
+  const [data, setData] = useState<TreeRecord[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
+
+  const fetchData = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      
+      const response = await fetch("/api/calls/queryAthena", {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`Error: ${response.status} - ${response.statusText}`);
+      }
+
+      const result = await response.json();
+      setData(result);
+    } catch (err) {
+      const error = err instanceof Error ? err : new Error('Error desconocido');
+      setError(error);
+      toast.error(error.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        const response = await fetch("/api/calls/queryAthena");
-
-        if (!response.ok) {
-          throw new Error("Error fetching Athena query results");
-        }
-
-        const result = await response.json();
-        console.log(result);
-
-        // Extraer filas de los resultados
-        const rows = result?.ResultSet?.Rows || [];
-        if (rows.length === 0) {
-          setData([]);
-          return;
-        }
-
-        // Extraer encabezados (la primera fila suele contener los nombres de las columnas)
-        const headers = rows[0].Data.map((col: any) => col.VarCharValue);
-
-        // Extraer datos de las filas restantes
-        const formattedData = rows.slice(1).map((row: any) => {
-          const values = row.Data.map((col: any) => col.VarCharValue || null);
-          return Object.fromEntries(headers.map((key, index) => [key, values[index]]));
-        });
-
-        setData(formattedData);
-      } catch (err: any) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchData();
   }, []);
 
-  return { data, loading, error };
+  return {
+    data,
+    isLoading,
+    error,
+    refetch: fetchData
+  };
 }

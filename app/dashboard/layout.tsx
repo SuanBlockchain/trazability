@@ -1,11 +1,5 @@
 import Link from "next/link";
-import {
-  Home,
-  LineChart,
-  Package2,
-  PanelLeft,
-  Settings,
-} from "lucide-react";
+import { Home, LineChart, Package2, PanelLeft, Settings } from "lucide-react";
 
 import {
   Breadcrumb,
@@ -17,38 +11,30 @@ import {
 } from "@/components/ui/breadcrumb";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import Providers from "./providers";
 /* import { Avatar, AvatarFallback } from "@/components/ui/avatar"; */
 import { NavItem } from "./nav-item";
 import { User } from "./user";
 import Image from "next/image";
-/* import { usePathname } from "next/navigation"; */
 
 export default function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  /* const pathname = usePathname(); */
-
-  /* console.log('pathname', pathname) */
-
   return (
-    <Providers>
-      <main className="flex min-h-screen w-full flex-col bg-muted/40">
-        <DesktopNav />
-        <div className="flex flex-col sm:gap-4 sm:py-4 sm:pl-14">
-          <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">
-            <MobileNav />
-            <DashboardBreadcrumb />
-            <User />
-          </header>
-          <main className="flex items-start gap-2 p-4 sm:px-6 sm:py-0 md:gap-4 bg-muted/40">
-            {children}
-          </main>
-        </div>
-      </main>
-    </Providers>
+    <main className="flex min-h-screen w-full flex-col bg-muted/40">
+      <DesktopNav />
+      <div className="flex flex-col sm:gap-4 sm:py-4 sm:pl-14">
+        <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">
+          <MobileNav />
+          <DashboardBreadcrumb />
+          <User />
+        </header>
+        <main className="flex items-start gap-2 p-4 sm:px-6 sm:py-0 md:gap-4 bg-muted/40">
+          {children}
+        </main>
+      </div>
+    </main>
   );
 }
 

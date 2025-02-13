@@ -4,54 +4,114 @@ import {
   StartQueryExecutionCommand,
   GetQueryExecutionCommand,
   GetQueryResultsCommand,
+  QueryExecutionState,
+  StartQueryExecutionCommandInput,
+  QueryExecution,
 } from "@aws-sdk/client-athena";
+import { TreeRecord } from "@/types/records";
 
-const client = new AthenaClient({ region: "us-east-2" });
+// Configuración común
+const ATHENA_CONFIG = {
+  region: process.env.ATHENA_REGION || "",
+  database: process.env.ATHENA_DATABASE || "",
+  table: process.env.ATHENA_TABLE || "",
+  outputLocation: process.env.ATHENA_OUTPUT_LOCATION || "",
+  workGroup: process.env.ATHENA_WORKGROUP || "",
+} as const;
+
+const client = new AthenaClient({ region: ATHENA_CONFIG.region });
+
+/**
+ * Ejecuta una consulta en Athena y espera por los resultados
+ * @param input - Parámetros de la consulta
+ * @returns Promise con la ejecución de la consulta
+ */
+async function executeAthenaQuery(
+  input: StartQueryExecutionCommandInput
+): Promise<QueryExecution> {
+  const queryCommand = new StartQueryExecutionCommand(input);
+  const { QueryExecutionId: queryExecutionId } = await client.send(
+    queryCommand
+  );
+
+  if (!queryExecutionId) {
+    throw new Error("QueryExecutionId is undefined");
+  }
+
+  let retryIn = 0;
+  let queryExecution: QueryExecution;
+
+  do {
+    // La consulta se ejecuta de forma asíncrona, esperar hasta 1s por intento
+    if (retryIn < 1000) {
+      retryIn += 250;
+    }
+    await new Promise((resolve) => setTimeout(resolve, retryIn));
+
+    const statusCommand = new GetQueryExecutionCommand({
+      QueryExecutionId: queryExecutionId,
+    });
+    const response = await client.send(statusCommand);
+    queryExecution = response.QueryExecution!;
+  } while (
+    queryExecution.Status!.State === QueryExecutionState.QUEUED ||
+    queryExecution.Status!.State === QueryExecutionState.RUNNING
+  );
+
+  return queryExecution;
+}
+
+/**
+ * Transforma los resultados de Athena en un formato más manejable
+ * @param rows - Filas de resultados de Athena
+ * @returns Array de objetos con los datos transformados
+ */
+function transformQueryResults(rows: any[]): TreeRecord[] {
+  if (!rows.length) return [];
+
+  const headers = rows[0].Data?.map((col: any) => col.VarCharValue) || [];
+
+  return rows.slice(1).map((row) => {
+    const values = row.Data?.map((col: any) => col.VarCharValue ?? null);
+    const record = Object.fromEntries(
+      headers.map((key: string, index: number) => [key, values[index]])
+    );
+    return record as TreeRecord;
+  });
+}
 
 export async function GET(request: NextRequest) {
   try {
-    // Iniciar la consulta
-    const queryCommand = new StartQueryExecutionCommand({
-      QueryString: 'SELECT * FROM "trazabilty-db"."kobol-tool-datadata" limit 10;', // Asegúrate de que el nombre de la tabla sea correcto
-      QueryExecutionContext: { Database: "trazabilty-db" },
+    const queryInput = {
+      QueryString: `SELECT * FROM "${ATHENA_CONFIG.database}"."${ATHENA_CONFIG.table}" limit 10;`,
+      QueryExecutionContext: { Database: ATHENA_CONFIG.database },
       ResultConfiguration: {
-        OutputLocation:
-          "s3://suan-workshop-data-lake-delete/customer_review_parquet/results/",
+        OutputLocation: ATHENA_CONFIG.outputLocation,
       },
-      WorkGroup: "suan-workshop-datalake-workgroup-delte",
-    });
+      WorkGroup: ATHENA_CONFIG.workGroup,
+    };
 
-    const queryResponse = await client.send(queryCommand);
-    const queryExecutionId = queryResponse.QueryExecutionId;
+    const queryExecution = await executeAthenaQuery(queryInput);
 
-    if (!queryExecutionId) {
-      throw new Error("QueryExecutionId is undefined");
+    if (queryExecution.Status!.State === QueryExecutionState.FAILED) {
+      throw new Error(
+        `Query failed: ${queryExecution.Status!.StateChangeReason}`
+      );
     }
 
-    // Esperar a que la consulta termine
-    let queryStatus = "QUEUED";
-    while (queryStatus === "QUEUED" || queryStatus === "RUNNING") {
-      await new Promise((resolve) => setTimeout(resolve, 2000)); // Espera 2 segundos antes de revisar de nuevo
-
-      const statusCommand = new GetQueryExecutionCommand({
-        QueryExecutionId: queryExecutionId,
-      });
-
-      const statusResponse = await client.send(statusCommand);
-      queryStatus = statusResponse.QueryExecution?.Status?.State || "UNKNOWN";
-
-      if (queryStatus === "FAILED" || queryStatus === "CANCELLED") {
-        throw new Error(`Query failed or was cancelled: ${queryStatus}`);
-      }
+    if (queryExecution.Status!.State === QueryExecutionState.CANCELLED) {
+      throw new Error("Query was cancelled");
     }
 
-    // Obtener resultados una vez la consulta haya finalizado
+    // Obtener resultados
     const resultCommand = new GetQueryResultsCommand({
-      QueryExecutionId: queryExecutionId,
+      QueryExecutionId: queryExecution.QueryExecutionId,
     });
     const results = await client.send(resultCommand);
 
-    return NextResponse.json(results);
+    return NextResponse.json(
+      transformQueryResults(results.ResultSet?.Rows || [])
+    );
   } catch (error: any) {
     console.error(error);
     return NextResponse.json(
