@@ -2,6 +2,7 @@ import json
 import logging
 import boto3
 import uuid
+from datetime import datetime
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
@@ -20,8 +21,14 @@ def lambda_handler(event, context):
         logging.info(f"Event: {event.get('body', {})}")
         body = json.loads(event.get("body", "{}"))
 
-        # Generate a unique key for the S3 object
-        s3_key = f"data/{uuid.uuid4()}.json"
+             # Get the current date
+        now = datetime.now()
+        year = now.strftime("%Y")
+        month = now.strftime("%m")
+        day = now.strftime("%d")
+
+        # Generate a unique key for the S3 object with date-based folder structure
+        s3_key = f"data/{year}/{month}/{day}/{uuid.uuid4()}.json"
 
         # Upload the data to S3
         s3.put_object(
