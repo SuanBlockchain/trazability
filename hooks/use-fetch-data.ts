@@ -32,8 +32,9 @@ export function useAthenaQuery(): UseAthenaQueryResult {
       const result = await response.json();
       setData(result);
     } catch (error: any) {
+      console.log(error);
       setError(error);
-      toast.error(error);
+      toast.error('Error al obtener los datos');
     } finally {
       setIsLoading(false);
     }

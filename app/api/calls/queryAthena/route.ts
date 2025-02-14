@@ -20,21 +20,32 @@ const ATHENA_CONFIG = {
 } as const;
 
 const client = new AthenaClient({ region: ATHENA_CONFIG.region });
-
 function validateConfig() {
   const requiredEnvVars = [
     'ATHENA_REGION',
     'ATHENA_DATABASE',
     'ATHENA_TABLE',
     'ATHENA_OUTPUT_LOCATION',
-    'ATHENA_WORKGROUP'
+    'ATHENA_WORKGROUP',
+    'AWS_ACCESS_KEY_ID',
+    'AWS_SECRET_ACCESS_KEY'
   ];
 
   const missingVars = requiredEnvVars.filter(varName => !process.env[varName]);
   
   if (missingVars.length > 0) {
-    throw new Error(`Missing required environment variables: ${missingVars.join(', ')}`);
+    return {
+      error: true,
+      response: NextResponse.json(
+        { 
+          error: `Missing required environment variables: ${missingVars.join(', ')}`
+        },
+        { status: 500 }
+      )
+    };
   }
+
+  return { error: false };
 }
 
 /**
@@ -97,7 +108,10 @@ function transformQueryResults(rows: any[]): TreeRecord[] {
 }
 
 export async function GET(request: NextRequest) {
-  validateConfig();
+  const configValidation = validateConfig();
+  if (configValidation.error) {
+    return configValidation.response;
+  }
 
   // Verificar la conexión con AWS
   if (!client) {
