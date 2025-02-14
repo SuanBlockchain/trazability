@@ -21,6 +21,22 @@ const ATHENA_CONFIG = {
 
 const client = new AthenaClient({ region: ATHENA_CONFIG.region });
 
+function validateConfig() {
+  const requiredEnvVars = [
+    'ATHENA_REGION',
+    'ATHENA_DATABASE',
+    'ATHENA_TABLE',
+    'ATHENA_OUTPUT_LOCATION',
+    'ATHENA_WORKGROUP'
+  ];
+
+  const missingVars = requiredEnvVars.filter(varName => !process.env[varName]);
+  
+  if (missingVars.length > 0) {
+    throw new Error(`Missing required environment variables: ${missingVars.join(', ')}`);
+  }
+}
+
 /**
  * Ejecuta una consulta en Athena y espera por los resultados
  * @param input - Parámetros de la consulta
@@ -81,6 +97,13 @@ function transformQueryResults(rows: any[]): TreeRecord[] {
 }
 
 export async function GET(request: NextRequest) {
+  validateConfig();
+
+  // Verificar la conexión con AWS
+  if (!client) {
+    throw new Error('AWS Athena client not initialized');
+  }
+  
   try {
     const queryInput = {
       QueryString: `SELECT * FROM "${ATHENA_CONFIG.database}"."${ATHENA_CONFIG.table}" limit 10;`,

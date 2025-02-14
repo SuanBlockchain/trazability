@@ -12,16 +12,16 @@ interface UseAthenaQueryResult {
 export function useAthenaQuery(): UseAthenaQueryResult {
   const [data, setData] = useState<TreeRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<Error | null>(null);
+  const [error, setError] = useState<any>(null);
 
   const fetchData = async () => {
     try {
       setIsLoading(true);
       setError(null);
-      
+
       const response = await fetch("/api/calls/queryAthena", {
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
       });
 
@@ -31,10 +31,9 @@ export function useAthenaQuery(): UseAthenaQueryResult {
 
       const result = await response.json();
       setData(result);
-    } catch (err) {
-      const error = err instanceof Error ? err : new Error('Error desconocido');
+    } catch (error: any) {
       setError(error);
-      toast.error(error.message);
+      toast.error(error);
     } finally {
       setIsLoading(false);
     }
@@ -48,6 +47,6 @@ export function useAthenaQuery(): UseAthenaQueryResult {
     data,
     isLoading,
     error,
-    refetch: fetchData
+    refetch: fetchData,
   };
 }
