@@ -12,21 +12,21 @@ import { TreeRecord } from "@/types/records";
 
 // Configuración común
 const ATHENA_CONFIG = {
-  region: process.env.ATHENA_REGION || "",
-  database: process.env.ATHENA_DATABASE || "",
-  table: process.env.ATHENA_TABLE || "",
-  outputLocation: process.env.ATHENA_OUTPUT_LOCATION || "",
-  workGroup: process.env.ATHENA_WORKGROUP || "",
+  region: process.env.NEXT_PUBLIC_ATHENA_REGION || "",
+  database: process.env.NEXT_PUBLIC_ATHENA_DATABASE || "",
+  table: process.env.NEXT_PUBLIC_ATHENA_TABLE || "",
+  outputLocation: process.env.NEXT_PUBLIC_ATHENA_OUTPUT_LOCATION || "",
+  workGroup: process.env.NEXT_PUBLIC_ATHENA_WORKGROUP || "",
 } as const;
 
 const client = new AthenaClient({ region: ATHENA_CONFIG.region });
 function validateConfig() {
   const requiredEnvVars = [
-    'ATHENA_REGION',
-    'ATHENA_DATABASE',
-    'ATHENA_TABLE',
-    'ATHENA_OUTPUT_LOCATION',
-    'ATHENA_WORKGROUP',
+    'NEXT_PUBLIC_ATHENA_REGION',
+    'NEXT_PUBLIC_ATHENA_DATABASE',
+    'NEXT_PUBLIC_ATHENA_TABLE',
+    'NEXT_PUBLIC_ATHENA_OUTPUT_LOCATION',
+    'NEXT_PUBLIC_ATHENA_WORKGROUP',
     'AWS_ACCESS_KEY_ID',
     'AWS_SECRET_ACCESS_KEY'
   ];
