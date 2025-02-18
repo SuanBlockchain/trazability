@@ -17,7 +17,10 @@ import Image from "next/image";
 import { useActionState } from "react";
 
 export default function LoginForm() {
-  const [errorMessage, dispatch] = useActionState(handleSignIn, undefined);
+  const [errorMessage, dispatch, isPending] = useActionState(
+    handleSignIn,
+    undefined
+  );
 
   return (
     <Card className="w-full max-w-sm">
@@ -55,8 +58,8 @@ export default function LoginForm() {
               Error en la autenticación. Por favor, verifica tus credenciales.
             </div>
           )}
-          <Button type="submit" className="w-full">
-            Ingresar
+          <Button type="submit" className="w-full" disabled={isPending}>
+            {isPending ? "Ingresando..." : "Ingresar"}
           </Button>
         </form>
       </CardContent>
