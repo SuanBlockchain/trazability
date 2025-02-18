@@ -30,6 +30,7 @@ export function useAthenaQuery(): UseAthenaQueryResult {
       }
 
       const result = await response.json();
+      console.log('result', result);
       setData(result);
     } catch (error: any) {
       console.log(error);
