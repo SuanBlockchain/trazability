@@ -33,7 +33,7 @@ export function useAthenaQuery(): UseAthenaQueryResult {
       console.log('result', result);
       setData(result);
     } catch (error: any) {
-      console.log(error);
+      console.log('Error: ', error);
       setError(error);
       toast.error('Error al obtener los datos');
     } finally {

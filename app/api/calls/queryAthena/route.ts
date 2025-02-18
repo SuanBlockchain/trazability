@@ -12,34 +12,38 @@ import { TreeRecord } from "@/types/records";
 
 // Configuración común
 const ATHENA_CONFIG = {
-  region: process.env['ATHENA_REGION'] || "",
-  database: process.env['ATHENA_DATABASE'] || "",
-  table: process.env['ATHENA_TABLE'] || "",
-  outputLocation: process.env['ATHENA_OUTPUT_LOCATION'] || "",
-  workGroup: process.env['ATHENA_WORKGROUP'] || "",
+  region: process.env["ATHENA_REGION"] || "",
+  database: process.env["ATHENA_DATABASE"] || "",
+  table: process.env["ATHENA_TABLE"] || "",
+  outputLocation: process.env["ATHENA_OUTPUT_LOCATION"] || "",
+  workGroup: process.env["ATHENA_WORKGROUP"] || "",
 } as const;
 
 const client = new AthenaClient({ region: ATHENA_CONFIG.region });
 function validateConfig() {
   const requiredEnvVars = [
-    'ATHENA_REGION',
-    'ATHENA_DATABASE',
-    'ATHENA_TABLE',
-    'ATHENA_OUTPUT_LOCATION',
-    'ATHENA_WORKGROUP',
+    "ATHENA_REGION",
+    "ATHENA_DATABASE",
+    "ATHENA_TABLE",
+    "ATHENA_OUTPUT_LOCATION",
+    "ATHENA_WORKGROUP",
   ];
 
-  const missingVars = requiredEnvVars.filter(varName => !process.env[varName]);
-  console.log('missingVars', missingVars)
+  const missingVars = requiredEnvVars.filter(
+    (varName) => !process.env[varName]
+  );
+  console.log("missingVars", missingVars);
   if (missingVars.length > 0) {
     return {
       error: true,
       response: NextResponse.json(
-        { 
-          error: `Missing required environment variables: ${missingVars.join(', ')}`
+        {
+          error: `Missing required environment variables: ${missingVars.join(
+            ", "
+          )}`,
         },
         { status: 500 }
-      )
+      ),
     };
   }
 
@@ -105,18 +109,20 @@ function transformQueryResults(rows: any[]): TreeRecord[] {
   });
 }
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   const configValidation = validateConfig();
   if (configValidation.error) {
     return configValidation.response;
   }
-  console.log('entroooo')
 
   // Verificar la conexión con AWS
   if (!client) {
-    throw new Error('AWS Athena client not initialized');
+    return NextResponse.json(
+      { error: "Error con el cliente de Athena" },
+      { status: 500 }
+    );
   }
-  
+
   try {
     const queryInput = {
       QueryString: `SELECT * FROM "${ATHENA_CONFIG.database}"."${ATHENA_CONFIG.table}" limit 10;`,
