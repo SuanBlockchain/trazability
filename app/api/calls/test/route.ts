@@ -87,7 +87,7 @@ export async function GET() {
     return NextResponse.json({ datos: resultados });
   } catch (error) {
     return NextResponse.json(
-      { error: "Error al procesar la consulta" },
+      { error:  `Error al procesar la consulta ${process.env.ATHENA_REGION} - Error: ${error}` },
       { status: 500 }
     );
   }
