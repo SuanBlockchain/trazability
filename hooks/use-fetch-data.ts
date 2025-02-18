@@ -24,10 +24,10 @@ export function useAthenaQuery(): UseAthenaQueryResult {
           "Content-Type": "application/json",
         },
       });
-
+/* 
       if (!response.ok) {
         throw new Error(`Error: ${response.status} - ${response.statusText}`);
-      }
+      } */
 
       const result = await response.json();
       console.log('result', result);
