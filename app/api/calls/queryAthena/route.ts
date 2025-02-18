@@ -1,129 +1,117 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import {
-  AthenaClient,
   StartQueryExecutionCommand,
-  GetQueryExecutionCommand,
   GetQueryResultsCommand,
+  GetQueryExecutionCommand,
+  AthenaClient,
   QueryExecutionState,
-  StartQueryExecutionCommandInput,
-  QueryExecution,
 } from "@aws-sdk/client-athena";
 import { TreeRecord } from "@/types/records";
 
-// Configuración común
-const ATHENA_CONFIG = {
-  region: process.env["ATHENA_REGION"] || "",
-  database: process.env["ATHENA_DATABASE"] || "",
-  table: process.env["ATHENA_TABLE"] || "",
-  outputLocation: process.env["ATHENA_OUTPUT_LOCATION"] || "",
-  workGroup: process.env["ATHENA_WORKGROUP"] || "",
-} as const;
-
-const client = new AthenaClient({
-  region: ATHENA_CONFIG.region,
+const athenaClient = new AthenaClient({
+  region: process.env.ATHENA_REGION,
   credentials: {
     accessKeyId: process.env.ACCESS_KEY_ID || "",
     secretAccessKey: process.env.SECRET_ACCESS_KEY || "",
   },
 });
 
-/**
- * Ejecuta una consulta en Athena y espera por los resultados
- * @param input - Parámetros de la consulta
- * @returns Promise con la ejecución de la consulta
- */
-async function executeAthenaQuery(
-  input: StartQueryExecutionCommandInput
-): Promise<QueryExecution> {
-  const queryCommand = new StartQueryExecutionCommand(input);
-  const { QueryExecutionId: queryExecutionId } = await client.send(
-    queryCommand
-  );
+async function checkQueryExecution(queryExecutionId: string) {
+  const maxIntentos = 50;
+  let intentos = 0;
 
-  if (!queryExecutionId) {
-    throw new Error("QueryExecutionId is undefined");
+  while (intentos < maxIntentos) {
+    const queryExecution = await athenaClient.send(
+      new GetQueryExecutionCommand({
+        QueryExecutionId: queryExecutionId,
+      })
+    );
+
+    const estado = queryExecution.QueryExecution?.Status?.State;
+
+    if (estado === QueryExecutionState.SUCCEEDED) {
+      return true;
+    }
+
+    if (
+      estado === QueryExecutionState.FAILED ||
+      estado === QueryExecutionState.CANCELLED
+    ) {
+      throw new Error(`La consulta falló con estado: ${estado}`);
+    }
+
+    // Esperar 1 segundo antes del siguiente intento
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+    intentos++;
   }
 
-  let retryIn = 0;
-  let queryExecution: QueryExecution;
-
-  do {
-    // La consulta se ejecuta de forma asíncrona, esperar hasta 1s por intento
-    if (retryIn < 1000) {
-      retryIn += 250;
-    }
-    await new Promise((resolve) => setTimeout(resolve, retryIn));
-
-    const statusCommand = new GetQueryExecutionCommand({
-      QueryExecutionId: queryExecutionId,
-    });
-    const response = await client.send(statusCommand);
-    queryExecution = response.QueryExecution!;
-  } while (
-    queryExecution.Status!.State === QueryExecutionState.QUEUED ||
-    queryExecution.Status!.State === QueryExecutionState.RUNNING
-  );
-
-  return queryExecution;
+  throw new Error("Tiempo de espera agotado");
 }
 
-/**
- * Transforma los resultados de Athena en un formato más manejable
- * @param rows - Filas de resultados de Athena
- * @returns Array de objetos con los datos transformados
- */
+async function queryAthena() {
+  try {
+    // Configurar la consulta
+    const queryParams = {
+      QueryString: `SELECT * FROM "${process.env.ATHENA_DATABASE}"."${process.env.ATHENA_TABLE}" limit 10;`,
+      QueryExecutionContext: {
+        Database: process.env.ATHENA_DATABASE,
+      },
+      ResultConfiguration: {
+        OutputLocation: process.env.ATHENA_OUTPUT_LOCATION,
+      },
+      WorkGroup: process.env.ATHENA_WORKGROUP,
+    };
+
+    // Ejecutar la consulta
+    const startQueryResponse = await athenaClient.send(
+      new StartQueryExecutionCommand(queryParams)
+    );
+
+    const queryExecutionId = startQueryResponse.QueryExecutionId;
+    
+    // Esperar a que la consulta termine
+    await checkQueryExecution(queryExecutionId || "");
+
+    // Obtener resultados
+    const queryResults = await athenaClient.send(
+      new GetQueryResultsCommand({
+        QueryExecutionId: queryExecutionId,
+      })
+    );
+
+    return queryResults.ResultSet?.Rows || [];
+  } catch (error) {
+    console.error("Error al consultar Athena:", error);
+    throw error;
+  }
+}
+
+
 function transformQueryResults(rows: any[]): TreeRecord[] {
   if (!rows.length) return [];
 
   const headers = rows[0].Data?.map((col: any) => col.VarCharValue) || [];
 
-  return rows.slice(1).map((row) => {
-    const values = row.Data?.map((col: any) => col.VarCharValue ?? null);
-    const record = Object.fromEntries(
-      headers.map((key: string, index: number) => [key, values[index]])
-    );
-    return record as TreeRecord;
-  });
+  return rows
+    .slice(1)
+    .map((row) => {
+      const values = row.Data?.map((col: any) => col.VarCharValue ?? null);
+      const record = Object.fromEntries(
+        headers.map((key: string, index: number) => [key, values[index]])
+      );
+      return record as TreeRecord;
+    })
+    .filter((record) => record._id !== null);
 }
 
 export async function GET() {
-  // Verificar la conexión con AWS
-  if (!client) {
-    return Response.json({ error: "Error con el cliente de Athena" });
-  }
-
   try {
-    const queryInput = {
-      QueryString: `SELECT * FROM "${ATHENA_CONFIG.database}"."${ATHENA_CONFIG.table}" limit 10;`,
-      QueryExecutionContext: { Database: ATHENA_CONFIG.database },
-      ResultConfiguration: {
-        OutputLocation: ATHENA_CONFIG.outputLocation,
-      },
-      WorkGroup: ATHENA_CONFIG.workGroup,
-    };
-
-    const queryExecution = await executeAthenaQuery(queryInput);
-
-    if (queryExecution.Status!.State === QueryExecutionState.FAILED) {
-      return Response.json({
-        error: `Query failed: ${queryExecution.Status!.StateChangeReason}`,
-      });
-    }
-
-    if (queryExecution.Status!.State === QueryExecutionState.CANCELLED) {
-      return Response.json({
-        error: `Query was cancelled`,
-      });
-    }
-
-    // Obtener resultados
-    const resultCommand = new GetQueryResultsCommand({
-      QueryExecutionId: queryExecution.QueryExecutionId,
-    });
-    const results = await client.send(resultCommand);
-
-    return Response.json(transformQueryResults(results.ResultSet?.Rows || []));
-  } catch (error: any) {
-    return Response.json({ error: `Error executing query ${error}` });
+    const resultados = await queryAthena();
+    return NextResponse.json(transformQueryResults(resultados) || []);
+  } catch (error) {
+    return NextResponse.json(
+      { error:  `Error al procesar la consulta: ${error}` },
+      { status: 500 }
+    );
   }
 }
