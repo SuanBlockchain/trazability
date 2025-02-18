@@ -20,35 +20,6 @@ const ATHENA_CONFIG = {
 } as const;
 
 const client = new AthenaClient({ region: ATHENA_CONFIG.region });
-function validateConfig() {
-  const requiredEnvVars = [
-    "ATHENA_REGION",
-    "ATHENA_DATABASE",
-    "ATHENA_TABLE",
-    "ATHENA_OUTPUT_LOCATION",
-    "ATHENA_WORKGROUP",
-  ];
-
-  const missingVars = requiredEnvVars.filter(
-    (varName) => !process.env[varName]
-  );
-  console.log("missingVars", missingVars);
-  if (missingVars.length > 0) {
-    return {
-      error: true,
-      response: NextResponse.json(
-        {
-          error: `Missing required environment variables: ${missingVars.join(
-            ", "
-          )}`,
-        },
-        { status: 500 }
-      ),
-    };
-  }
-
-  return { error: false };
-}
 
 /**
  * Ejecuta una consulta en Athena y espera por los resultados
@@ -110,17 +81,9 @@ function transformQueryResults(rows: any[]): TreeRecord[] {
 }
 
 export async function GET() {
-  const configValidation = validateConfig();
-  if (configValidation.error) {
-    return configValidation.response;
-  }
-
   // Verificar la conexión con AWS
   if (!client) {
-    return NextResponse.json(
-      { error: "Error con el cliente de Athena" },
-      { status: 500 }
-    );
+    return Response.json({ error: "Error con el cliente de Athena" });
   }
 
   try {
@@ -136,13 +99,15 @@ export async function GET() {
     const queryExecution = await executeAthenaQuery(queryInput);
 
     if (queryExecution.Status!.State === QueryExecutionState.FAILED) {
-      throw new Error(
-        `Query failed: ${queryExecution.Status!.StateChangeReason}`
-      );
+      return Response.json({
+        error: `Query failed: ${queryExecution.Status!.StateChangeReason}`,
+      });
     }
 
     if (queryExecution.Status!.State === QueryExecutionState.CANCELLED) {
-      throw new Error("Query was cancelled");
+      return Response.json({
+        error: `Query was cancelled`,
+      });
     }
 
     // Obtener resultados
@@ -151,14 +116,8 @@ export async function GET() {
     });
     const results = await client.send(resultCommand);
 
-    return NextResponse.json(
-      transformQueryResults(results.ResultSet?.Rows || [])
-    );
+    return Response.json(transformQueryResults(results.ResultSet?.Rows || []));
   } catch (error: any) {
-    console.error(error);
-    return NextResponse.json(
-      { error: error.message || "Error executing query" },
-      { status: 500 }
-    );
+    return Response.json({ error: `Error executing query ${error}` });
   }
 }
