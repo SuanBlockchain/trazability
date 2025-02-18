@@ -8,7 +8,11 @@ import {
 } from "@aws-sdk/client-athena";
 
 const athenaClient = new AthenaClient({
-  region: process.env.ATHENA_REGION
+  region: process.env.ATHENA_REGION,
+  credentials: {
+    accessKeyId: process.env.ACCESS_KEY_ID || "",
+    secretAccessKey: process.env.SECRET_ACCESS_KEY || "",
+  },
 });
 
 async function esperarResultadosConsulta(queryExecutionId: string) {

@@ -19,7 +19,13 @@ const ATHENA_CONFIG = {
   workGroup: process.env["ATHENA_WORKGROUP"] || "",
 } as const;
 
-const client = new AthenaClient({ region: ATHENA_CONFIG.region });
+const client = new AthenaClient({
+  region: ATHENA_CONFIG.region,
+  credentials: {
+    accessKeyId: process.env.ACCESS_KEY_ID || "",
+    secretAccessKey: process.env.SECRET_ACCESS_KEY || "",
+  },
+});
 
 /**
  * Ejecuta una consulta en Athena y espera por los resultados
