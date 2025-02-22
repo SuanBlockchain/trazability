@@ -14,8 +14,10 @@ import {
 import Link from "next/link";
 import LogoutForm from "@/components/ui/dashboard/logout-form";
 import useAuthUser from "@/hooks/use-auth-user";
+import { useSession } from "next-auth/react";
 
 export function User() {
+  const { data: session, status: statusSession } = useSession();
   const user = useAuthUser();
 
   return (
@@ -41,7 +43,7 @@ export function User() {
         <DropdownMenuItem>Configuración</DropdownMenuItem>
         <DropdownMenuItem>Soporte</DropdownMenuItem>
         <DropdownMenuSeparator />
-        {user ? (
+        {session ? (
           <DropdownMenuItem>
             <LogoutForm />
           </DropdownMenuItem>
