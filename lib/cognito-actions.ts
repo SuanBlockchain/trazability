@@ -3,7 +3,7 @@ import { useRouter } from "next/navigation";
 import {
   signUp,
   confirmSignUp,
-  signIn,
+  /* signIn, */
   signOut,
   resendSignUpCode,
   autoSignIn,
@@ -15,6 +15,7 @@ import {
   confirmResetPassword,
 } from "aws-amplify/auth";
 import { getErrorMessage } from "@/utils/get-error-message";
+import { signIn } from "next-auth/react";
 
 export async function handleSignUp(
   prevState: string | undefined,
@@ -82,19 +83,32 @@ export async function handleSignIn(
   prevState: string | undefined,
   formData: FormData
 ) {
-  let redirectLink = "/dashboard";
+  const redirectLink = "/dashboard";
   try {
-    const { nextStep } = await signIn({
+    /* const { nextStep } = await signIn({
       username: String(formData.get("username")),
       password: String(formData.get("password")),
     });
+    
     if (nextStep.signInStep === "CONFIRM_SIGN_UP") {
       await resendSignUpCode({
         username: String(formData.get("username")),
       });
       redirectLink = "/auth/confirm-signup";
+    } */
+    const response = await signIn("credentials", {
+      username: String(formData.get("username")),
+      password: String(formData.get("password")),
+      redirect: false,
+    });
+
+    if (response?.ok) {
+      location.replace('/dashboard');
+    } else {
+      console.log("Error");
     }
   } catch (error) {
+    console.log("error", error);
     return getErrorMessage(error);
   }
 

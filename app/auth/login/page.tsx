@@ -1,5 +1,5 @@
 import LoginForm from "@/components/ui/auth/login-form";
 
-export default function LoginPage() {
+export default async function LoginPage() {
   return <LoginForm />;
 }

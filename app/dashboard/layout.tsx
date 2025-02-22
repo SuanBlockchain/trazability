@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import { Home, LineChart, Package2, PanelLeft, Settings } from "lucide-react";
 
@@ -15,6 +17,7 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { NavItem } from "./nav-item";
 import { User } from "./user";
 import Image from "next/image";
+import { SessionProvider } from "next-auth/react";
 
 export default function DashboardLayout({
   children,
@@ -22,19 +25,21 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   return (
-    <main className="flex min-h-screen w-full flex-col bg-muted/40">
-      <DesktopNav />
-      <div className="flex flex-col sm:gap-4 sm:py-4 sm:pl-14">
-        <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">
-          <MobileNav />
-          <DashboardBreadcrumb />
-          <User />
-        </header>
-        <main className="flex items-start gap-2 p-4 sm:px-6 sm:py-0 md:gap-4 bg-muted/40">
-          {children}
-        </main>
-      </div>
-    </main>
+    <SessionProvider>
+      <main className="flex min-h-screen w-full flex-col bg-muted/40">
+        <DesktopNav />
+        <div className="flex flex-col sm:gap-4 sm:py-4 sm:pl-14">
+          <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">
+            <MobileNav />
+            <DashboardBreadcrumb />
+            <User />
+          </header>
+          <main className="flex items-start gap-2 p-4 sm:px-6 sm:py-0 md:gap-4 bg-muted/40">
+            {children}
+          </main>
+        </div>
+      </main>
+    </SessionProvider>
   );
 }
 
